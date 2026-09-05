@@ -12,10 +12,18 @@ st.set_page_config(
 # ব্যাকএন্ড ইউআরএল সেটআপ (Render-এর লাইভ লিংক)
 BACKEND_URL = os.getenv("BACKEND_URL", "https://bw-tornado-ai.onrender.com")
 
-# সাইডবারে ব্র্যান্ড নেম, মুড, ক্যাটেগরি ও ডেসক্রিপশন অপশন
+# সাইডবারে লোগো, ব্র্যান্ড নেম, মুড, ক্যাটেগরি ও ডেসক্রিপশন অপশন
 with st.sidebar:
-  st.markdown("# 🌪️ BW Tornado")
-  st.markdown("### AI Video Studio")
+  # আপনার লোগো এবং ব্র্যান্ড নেম সেকশন
+  st.markdown("<h1 style='text-align: center;'>🌪️</h1>", unsafe_allow_html=True)
+  st.markdown(
+      "<h2 style='text-align: center; color: #ff4b4b;'>BW Tornado</h2>",
+      unsafe_allow_html=True,
+  )
+  st.markdown(
+      "<p style='text-align: center; color: gray;'>AI Video Studio</p>",
+      unsafe_allow_html=True,
+  )
   st.markdown("---")
 
   st.markdown("### ⚙️ Video Settings")
@@ -76,7 +84,7 @@ if uploaded_file is not None:
         }
         data = {"category": category, "mood": mood, "description": description}
 
-        # Render ব্যাকএন্ডে রিকোয়েস্ট পাঠানো
+        # Render ব্যাকএন্ডে রিকোয়েস্ট পাঠানো (লোকাল হোস্টের পরিবর্তে লাইভ লিংক)
         response = requests.post(
             f"{BACKEND_URL}/process-video/", files=files, data=data
         )
