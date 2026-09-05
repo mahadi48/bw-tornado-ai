@@ -166,66 +166,38 @@ if uploaded_file is not None:
     with st.spinner(
         "⚡ BW Tornado AI ভিডিও এডিট এবং থাম্বনেইল তৈরি করছে... একটু অপেক্ষা করুন..."
     ):
-      # ভিডিও ফাইলটি লোকাল ফোল্ডারে সেভ করা
-      video_path = uploaded_file.name
-      with open(video_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-
-      # ব্যাকএন্ডে রিকোয়েস্ট পাঠানোর Payload (Render URL ব্যবহার করে)
       url = f"{BACKEND_URL}/process-video/"
-      payload = {
-          "video_filename": video_path,
-          "output_video_name": "edited_" + video_path,
-          "thumbnail_name": "thumb_" + video_path.split(".")[0] + ".png",
+
+      # ফাইল সরাসরি রিকোয়েস্টের মাধ্যমে ব্যাকএন্ডে পাঠানোর প্রস্তুতি
+      files = {
+          "file": (
+              uploaded_file.name,
+              uploaded_file.getvalue(),
+              uploaded_file.type,
+          )
+      }
+      data = {
           "category": video_category,
           "mood": video_mood,
           "description": video_description,
       }
 
       try:
-        response = requests.post(url, json=payload)
+        # JSON-এর পরিবর্তে files এবং data পাঠানো হচ্ছে যাতে রেন্ডার ব্যাকএন্ড ফাইলটি রিসিভ করতে পারে
+        response = requests.post(url, files=files, data=data)
+
         if response.status_code == 200:
           st.balloons()
           st.success(
               "🎉 অসাধারণ! ভিডিও এডিট এবং থাম্বনেইল সফলভাবে তৈরি হয়ে গেছে!"
           )
 
-          # আউটপুট ফাইল দেখানোর এবং ডাউনলোড করার অপশন
           result_data = response.json()
-          edited_video_file = result_data.get("edited_video")
-          thumbnail_file = result_data.get("thumbnail")
-
-          col1, col2 = st.columns(2)
-
-          with col1:
-            st.info("🎞️ এডিটেড ভিডিও")
-            if edited_video_file and os.path.exists(edited_video_file):
-              st.video(edited_video_file)
-              with open(edited_video_file, "rb") as f_vid:
-                st.download_button(
-                    label="📥 ভিডিও ডাউনলোড করুন",
-                    data=f_vid,
-                    file_name=edited_video_file,
-                    mime="video/mp4",
-                )
-            else:
-              st.write(edited_video_file)
-
-          with col2:
-            st.info("🖼️ থাম্বনেইল")
-            if thumbnail_file and os.path.exists(thumbnail_file):
-              st.image(thumbnail_file, use_container_width=True)
-              with open(thumbnail_file, "rb") as f_img:
-                st.download_button(
-                    label="📥 থাম্বনেইল ডাউনলোড করুন",
-                    data=f_img,
-                    file_name=thumbnail_file,
-                    mime="image/png",
-                )
-            else:
-              st.write(thumbnail_file)
+          st.json(result_data)
 
         else:
-          st.error(f"রিসপন্স এরর: {response.text}")
+          st.error(
+              f"রিসপন্স এরর (Status {response.status_code}): {response.text}"
+          )
       except Exception as e:
         st.error(f"সার্ভারের সাথে সংযোগ স্থাপন করা যায়নি: {e}")
